@@ -1,92 +1,89 @@
+import { httpClient } from "@/utils/httpClient";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useState } from "react";
-const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0MjQ1ZTYwNTQyZGY4ODUyNTExZDU2YiIsImVtYWlsIjoic2hhcm1pbGFAZ21haWwuY29tIiwiaWF0IjoxNjgwODgwNzEzLCJleHAiOjE2ODA5NjcxMTN9.G7knta3JwHNwJdNup_YxECuakRbGraS4VqVWrSV5d3Y";
+
 export default function Home() {
-  const [todos, setTodo] = useState([]);
+  const queryClient = useQueryClient();
+
   const [name, setName] = useState("");
-  const [refetchData, setRefetchData] = useState(false);
-  const [error, setError] = useState();
-  const [isLoading, setIsLoading] = useState(false);
   const [todoToBeUpdate, setTodoToBeUpdated] = useState();
 
-  const refetchTodo = () => setRefetchData(!refetchData);
+  const todoQuery = useQuery({
+    queryKey: ["todos"],
+    queryFn: async () => {
+      const res = await httpClient.get("/todos");
+      return res.data.data;
+    },
+  });
+
+  const addTodoMutation = useMutation({
+    mutationFn: async () => {
+      await httpClient.post("/todos", {
+        name,
+      });
+    },
+    onSuccess: () => {
+      // todoQuery.refetch();
+      queryClient.invalidateQueries({ queryKey: ["todos"] });
+    },
+  });
 
   const handleNamechange = (e) => {
     setName(e.target.value);
   };
 
-  useEffect(() => {
-    setIsLoading(true);
-    axios
-      .get("http://localhost:3001/api/todos", {
-        headers: {
-          token,
-        },
-      })
-      .then((res) => {
-        setTodo(res.data.data);
-        setIsLoading(false);
-        setError();
-      })
-      .catch((err) => {
-        setIsLoading(false);
-        setError(err?.response?.data?.message ?? "Something Went Wrong");
-      });
-  }, [refetchData]);
-
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (todoToBeUpdate) {
-      axios
-        .patch(
-          `http://localhost:3001/api/todos/${todoToBeUpdate}`,
-          {
-            name,
-          },
-          {
-            headers: {
-              token,
-            },
-          }
-        )
-        .then((res) => {
-          refetchTodo();
-          setTodoToBeUpdated();
-          setName("");
-        });
-    } else {
-      axios
-        .post(
-          "http://localhost:3001/api/todos",
-          {
-            name,
-          },
-          {
-            headers: {
-              token,
-            },
-          }
-        )
-        .then((res) => {
-          refetchTodo();
-          setName("");
-        });
-    }
+    addTodoMutation.mutate();
+    // if (todoToBeUpdate) {
+    //   axios
+    //     .patch(
+    //       `http://localhost:3001/api/todos/${todoToBeUpdate}`,
+    //       {
+    //         name,
+    //       },
+    //       {
+    //         headers: {
+    //           token,
+    //         },
+    //       }
+    //     )
+    //     .then((res) => {
+    //       refetchTodo();
+    //       setTodoToBeUpdated();
+    //       setName("");
+    //     });
+    // } else {
+    //   axios
+    //     .post(
+    //       "http://localhost:3001/api/todos",
+    //       {
+    //         name,
+    //       },
+    //       {
+    //         headers: {
+    //           token,
+    //         },
+    //       }
+    //     )
+    //     .then((res) => {
+    //       refetchTodo();
+    //       setName("");
+    //     });
   };
 
   const handleDelete = (todoId) => {
-    axios
-      .delete(`http://localhost:3001/api/todos/${todoId}`, {
-        headers: {
-          token,
-        },
-      })
-      .then((res) => {
-        refetchTodo();
-        console.log(res);
-      });
+    // axios
+    //   .delete(`http://localhost:3001/api/todos/${todoId}`, {
+    //     headers: {
+    //       token,
+    //     },
+    //   })
+    //   .then((res) => {
+    //     refetchTodo();
+    //     console.log(res);
+    //   });
   };
 
   const handleUpdate = (todo) => {
@@ -122,11 +119,11 @@ export default function Home() {
           onClick={handleReset}
         />
       </form>
-      {error && <p>{error}</p>}
-      {isLoading ? (
+      {/* {error && <p>{error}</p>} */}
+      {todoQuery.isLoading ? (
         <p>Loading....</p>
       ) : (
-        todos.map((todo) => (
+        todoQuery.data.map((todo) => (
           <li key={todo._id}>
             {todo.name}
             <button
@@ -144,6 +141,8 @@ export default function Home() {
           </li>
         ))
       )}
+      <hr />
+      <h2>Users</h2>
     </>
   );
 }
