@@ -7,3 +7,10 @@ export const httpClient = axios.create({
   }
 });
 
+httpClient.interceptors.response.use((response) => response, (error) => {
+  if (error.response.status === 401 && typeof window !== 'undefined') {
+    window.location.href = '/login';
+    localStorage.removeItem("token")
+  }
+});
+

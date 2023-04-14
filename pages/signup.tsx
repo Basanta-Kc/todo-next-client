@@ -1,17 +1,11 @@
-// {
-//     "firstName":"bibek",
-//     "lastName": "dhungana",
-//     "email": "bibekdhungana@gmail.com",
-//     "password": "password"
-// }
-
+import { Box, Button, TextField, Typography } from "@mui/material";
 import axios from "axios";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 export default function Login() {
   const router = useRouter();
-
   useEffect(() => {
     if (localStorage.getItem("token")) {
       router.push("/");
@@ -20,27 +14,69 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const data = new FormData(e.target);
     axios
       .post("http://localhost:3001/api/auth/sign-up", {
-        firstName: e.target[0].value,
-        lastName: e.target[1].value,
-        email: e.target[2].value,
-        password: e.target[3].value,
+        firstName: data.get("firstName"),
+        lastName: data.get("lastName"),
+        email: data.get("email"),
+        password: data.get("password"),
       })
       .then((res) => {
-        router.push("/login");
+        console.log(res.data.token);
+        localStorage.setItem("token", res.data.token);
+        router.push("/");
       });
   };
 
   return (
     <>
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="firstName" placeholder="First Name" />
-        <input type="text" name="lastName" placeholder="Last Name" />
-        <input type="email" name="email" placeholder="email" />
-        <input type="password" name="password" placeholder="password" />
-        <input type="submit" value="Sign Up" />
-      </form>
+      <Typography variant="h5" sx={{ mt: 10 }} textAlign={"center"}>
+        Sign Up
+      </Typography>
+      <Box
+        component="form"
+        sx={{
+          maxWidth: "500px",
+          mx: "auto",
+        }}
+        onSubmit={handleSubmit}
+      >
+        <TextField
+          sx={{ mt: 2 }}
+          fullWidth
+          label="First Name"
+          name="firstName"
+          type="text"
+        />
+        <TextField
+          sx={{ mt: 2 }}
+          fullWidth
+          label="Last Name"
+          name="lastName"
+          type="text"
+        />
+        <TextField
+          sx={{ mt: 2 }}
+          fullWidth
+          label="Email"
+          name="email"
+          type="email"
+        />
+        <TextField
+          sx={{ mt: 2 }}
+          fullWidth
+          label="Password"
+          name="password"
+          type="password"
+        />
+        <Button sx={{ my: 2 }} variant="contained" type="submit" fullWidth>
+          Sign Up
+        </Button>
+      </Box>
+      <Typography textAlign="center">
+        Already have an Account? <Link href="/login">Sign In</Link>
+      </Typography>
     </>
   );
 }
