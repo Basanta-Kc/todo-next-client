@@ -10,7 +10,6 @@ export function useQuery(url) {
   const refetch = () => setRefetchData(!refetchData)
 
   useEffect(() => {
-    console.log(window)
     setIsLoading(true)
     httpClient
       .get(url)

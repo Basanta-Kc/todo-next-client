@@ -1,15 +1,11 @@
-// {
-//     "firstName":"bibek",
-//     "lastName": "dhungana",
-//     "email": "bibekdhungana@gmail.com",
-//     "password": "password"
-// }
-
-import axios from "axios";
+import { httpClient } from "@/utils/httpClient";
+import { Alert, Box, Button, TextField, Typography } from "@mui/material";
+import { useMutation } from "@tanstack/react-query";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-export default function Login() {
+export default function SignUp() {
   const router = useRouter();
 
   useEffect(() => {
@@ -18,29 +14,80 @@ export default function Login() {
     }
   }, []);
 
+  const signUpMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await httpClient.post("/auth/sign-up", data);
+      return res;
+    },
+    onSuccess(res) {
+      router.push("/login");
+    },
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios
-      .post("http://localhost:3001/api/auth/sign-up", {
-        firstName: e.target[0].value,
-        lastName: e.target[1].value,
-        email: e.target[2].value,
-        password: e.target[3].value,
-      })
-      .then((res) => {
-        router.push("/login");
-      });
-  };
+    const formData = new FormData(e.target);
 
+    signUpMutation.mutate({
+      firstName: formData.get("firstName"),
+      lastName: formData.get("lastName"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+    });
+  };
   return (
     <>
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="firstName" placeholder="First Name" />
-        <input type="text" name="lastName" placeholder="Last Name" />
-        <input type="email" name="email" placeholder="email" />
-        <input type="password" name="password" placeholder="password" />
-        <input type="submit" value="Sign Up" />
-      </form>
+      <Typography variant="h4" textAlign="center">
+        Sign In
+      </Typography>
+      <Box
+        component="form"
+        sx={{
+          width: "500px",
+          mx: "auto",
+          mt: 2,
+        }}
+        onSubmit={handleSubmit}
+      >
+        {signUpMutation.isError && (
+          <Alert severity="error">{signUpMutation.error.message}</Alert>
+        )}
+        <TextField
+          sx={{ my: 1 }}
+          label="First Name"
+          name="firstName"
+          type="text"
+          fullWidth
+        />
+        <TextField
+          sx={{ my: 1 }}
+          label="Last Name"
+          name="lastName"
+          type="text"
+          fullWidth
+        />
+        <TextField
+          sx={{ my: 1 }}
+          label="Email"
+          name="email"
+          type="email"
+          fullWidth
+        />
+        <TextField
+          sx={{ my: 1 }}
+          label="Password"
+          name="password"
+          type="password"
+          fullWidth
+        />
+
+        <Button variant="contained" type="submit" fullWidth>
+          Sign Up
+        </Button>
+      </Box>
+      <Typography sx={{ my: 1 }} textAlign="center">
+        Already have an account? <Link href="/login">Sign In</Link>{" "}
+      </Typography>
     </>
   );
 }
