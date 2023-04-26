@@ -1,33 +1,20 @@
+import { AuthContext } from "@/contexts/AuthContext";
 import { httpClient } from "@/utils/httpClient";
 import { Alert, Box, Button, TextField, Typography } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useContext } from "react";
 
 export default function Login() {
   const router = useRouter();
+  const { signInMutation } = useContext(AuthContext);
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
       router.push("/");
     }
   }, []);
-
-  const signInMutation = useMutation({
-    mutationFn: async ({ email, password }) => {
-      const res = await httpClient.post("/auth/sign-in", {
-        email,
-        password,
-      });
-      return res;
-    },
-    onSuccess(res) {
-      console.log(res.data);
-      localStorage.setItem("token", res.data.token);
-      router.push("/");
-    },
-  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -79,3 +66,4 @@ export default function Login() {
     </>
   );
 }
+

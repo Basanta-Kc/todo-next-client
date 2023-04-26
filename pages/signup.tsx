@@ -1,3 +1,4 @@
+import { useAuth } from "@/hooks/useAuth";
 import { httpClient } from "@/utils/httpClient";
 import { Alert, Box, Button, TextField, Typography } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
@@ -7,6 +8,7 @@ import { useEffect } from "react";
 
 export default function SignUp() {
   const router = useRouter();
+  const { signUpMutation } = useAuth();
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
@@ -14,22 +16,12 @@ export default function SignUp() {
     }
   }, []);
 
-  const signUpMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const res = await httpClient.post("/auth/sign-up", data);
-      return res;
-    },
-    onSuccess(res) {
-      router.push("/login");
-    },
-  });
-
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
 
     signUpMutation.mutate({
-      firstName: formData.get("firstName"),
+      firstName: formData.get("firstName") as string,
       lastName: formData.get("lastName"),
       email: formData.get("email"),
       password: formData.get("password"),
