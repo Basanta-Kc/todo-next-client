@@ -15,6 +15,7 @@ httpClient.interceptors.response.use(
   function (error) {
     if (error.response.status == 401) {
       window.location.href = "/login";
+      localStorage.removeItem("token")
     }
     console.log(error.response)
     error.message = error.response.data.message ?? "Something Went Wrong."
